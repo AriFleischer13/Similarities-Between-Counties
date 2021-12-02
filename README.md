@@ -1,6 +1,8 @@
 Similarities-Between-Counties
 
-The Project Code file contains all of the code used for this project. 
+The Dataset folder contains all the datasets and the Project Code file contains all of the code used for this project. 
+
+acs2017_county_data.csv and acs2015_county_data.csv are the DP03 and DP05 tables of the American Community Survey for that year. uscounties.csv is the latitude and longitude of each US county or county equivalent. PuertoRicoLocationData.csv is the latitude and longitude values of the 78 municipalities of Puerto Rico. us census bureau regions and divisions.csv is the region and division that each state plus D.C. is in according to the US Census Bureau with Puerto Rico added. 
 
 The file EDA Code.rmd is the file used to read in all of the datasets and join the datasets together based on county name or by state name. 
 
