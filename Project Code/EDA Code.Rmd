@@ -1,0 +1,214 @@
+---
+title: "Project"
+author: "Ari Fleischer"
+date: "11/11/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Loading in Libraries
+
+```{r loading libraries, warning=FALSE, message=FALSE}
+# Loading the libraries
+library(tidyverse)
+```
+
+# Reading in US Counties 2015
+
+```{r}
+us_counties_2015 <- read_csv("acs2015_county_data.csv")
+us_counties_2015
+```
+
+# Reading in US Counties 2015
+
+```{r}
+us_counties_2017 <- read_csv("acs2017_county_data.csv")
+us_counties_2017
+```
+
+## Changing city in County Name to City
+
+```{r}
+us_counties_2017$County <- str_replace(us_counties_2017$County, "city", "City")
+```
+
+# Reading in Lat and Long Data
+
+```{r}
+lat_and_long <- read_csv("uscounties.csv")
+lat_and_long
+```
+
+# Only Taking Columns We Want From Lat and Long
+
+```{r}
+lat_and_long1 <- lat_and_long[, c(6, 3, 7, 8)]
+lat_and_long1
+```
+
+## Arraigning by State and then by County Name
+
+```{r}
+lat_and_long2 <- lat_and_long1 %>% arrange(state_name, county_full)
+lat_and_long2
+```
+
+## Setting County Name in County 2015 to Be These County Name to Match
+
+```{r}
+us_counties_2015[1:3142, 3] <- lat_and_long2[2]
+us_counties_2015[1:3142, 3]
+```
+
+# Rename Columns to Match US Counties
+
+```{r}
+colnames(lat_and_long1)[1:2] <- c("State", "County")
+lat_and_long1
+```
+
+# Getting Complete Data For 3,142 US Counties and and County Equivalents 2015
+
+```{r}
+full_us_counties_2015_data <- us_counties_2015 %>% inner_join(lat_and_long1)
+colnames(full_us_counties_2015_data)[38:39] <- c("Lat", "Long")
+nrow(full_us_counties_2015_data)
+full_us_counties_2015_data
+```
+
+# Getting Complete Data For 3,142 US Counties and and County Equivalents 2017
+
+```{r}
+full_us_counties_2017_data <- us_counties_2017 %>% inner_join(lat_and_long1)
+colnames(full_us_counties_2017_data)[38:39] <- c("Lat", "Long")
+nrow(full_us_counties_2017_data)
+full_us_counties_2017_data 
+```
+
+# Writing Both Out to CSVs
+
+```{r}
+write_csv(full_us_counties_2015_data, "full_us_counties_2015_data.csv")
+write_csv(full_us_counties_2017_data, "full_us_counties_2017_data.csv")
+```
+
+# Loading in Puerto Rico Lat and Long Data
+
+```{r}
+puerto_rico_lat_long <- read_csv("PuertoRicoLocationData.csv")
+colnames(puerto_rico_lat_long)[1] <- "County"
+puerto_rico_lat_long$`State` <- "Puerto Rico"
+
+puerto_rico_lat_long1 <- puerto_rico_lat_long[, c(4,1,2,3)]
+```
+
+```{r}
+puerto_rico_lat_long2 <- puerto_rico_lat_long1
+
+puerto_rico_lat_long2$`County` <- paste0(puerto_rico_lat_long2$`County`,
+                                         " Municipio")
+
+
+puerto_rico_lat_long2$`County`
+```
+
+# Getting Complete Data For 78 Muncipalities in Puerto Rico 2015
+
+```{r}
+full_puerto_rico_2015_data <- us_counties_2015 %>% inner_join(puerto_rico_lat_long1)
+nrow(full_puerto_rico_2015_data)
+full_puerto_rico_2015_data
+```
+
+# Getting Complete Data For 78 Muncipalities in Puerto Rico 2017
+
+```{r}
+full_puerto_rico_2017_data <- us_counties_2017 %>% inner_join(puerto_rico_lat_long2)
+nrow(full_puerto_rico_2017_data)
+full_puerto_rico_2017_data
+```
+
+# Writing Puerto Rico Data Out to CSVs
+
+```{r}
+write_csv(full_puerto_rico_2015_data, "full_puerto_rico_2015_data.csv")
+write_csv(full_puerto_rico_2017_data, "full_puerto_rico_2017_data.csv")
+```
+
+# Row Binding All of 2015 Together
+
+```{r}
+full_2015_county_data <- full_us_counties_2015_data %>% 
+                         rbind(full_puerto_rico_2015_data)
+nrow(full_2015_county_data)
+```
+
+# Row Binding All of 2017 Together
+
+```{r}
+full_2017_county_data <- full_us_counties_2017_data %>% 
+                         rbind(full_puerto_rico_2017_data)
+nrow(full_2017_county_data)
+```
+
+# Reading in Geographic Region for Each State
+
+```{r}
+geographic_region <- read_csv("us census bureau regions and divisions.csv")
+geographic_region
+```
+
+# Add Region to Full Dataset
+
+## 2015
+
+```{r}
+full_2015_county_data1 <- full_2015_county_data %>% inner_join(geographic_region)
+full_2015_county_data2 <- full_2015_county_data1[, c(1, 3, 2, 40:42, 4:39)]
+full_2015_county_data2
+```
+
+## 2017
+
+```{r}
+full_2017_county_data1 <- full_2017_county_data %>% inner_join(geographic_region)
+full_2017_county_data2 <- full_2017_county_data1[, c(1, 3, 2, 40:42, 4:39)]
+full_2017_county_data2
+```
+
+
+# Writing Full Data Out to CSVs
+
+```{r}
+write_csv(full_2015_county_data2, "full_2015_county_data.csv")
+write_csv(full_2017_county_data2, "full_2017_county_data.csv")
+```
+
+# Getting Continetal US Data
+
+## 2015
+
+```{r}
+continental_2015_county_data <- full_2015_county_data2 %>% 
+  filter(!(`State Code` %in% c("AK", "HI", "PR")))
+continental_2015_county_data
+```
+
+## 2017
+
+```{r}
+continental_2017_county_data <- full_2017_county_data2 %>% 
+  filter(!(`State Code` %in% c("AK", "HI", "PR")))
+continental_2017_county_data
+```
+
+## Writing Continental Data Out to CSVs
+
+```{r}
+write_csv(continental_2015_county_data, "continental_2015_county_data.csv")
+write_csv(continental_2017_county_data, "continental_2017_county_data.csv")
+```

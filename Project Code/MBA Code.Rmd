@@ -1,0 +1,99 @@
+---
+title: "MBA Code 1"
+author: "Ari Fleischer"
+date: "11/20/2021"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Loading Libraries 
+
+```{r loading libraries, warning=FALSE, message=FALSE}
+# Loading in the libraries
+library(tidyverse)
+library(arules)
+library(stringr)
+library(plotly)
+library(xlsx)
+```
+
+# Creating the Baskets
+
+```{r creating transactions dataset}
+# Creating the transactions dataset
+mba_transactions <- read.transactions(file="MBA_Initial_Transaction_Dataset.csv",
+                                      header=TRUE, rm.duplicates= FALSE,
+                                      format="basket", sep=",")
+
+mba_transactions
+
+summary(mba_transactions)
+```
+
+# Finding 1-exp(-basketsize/number of items)
+
+```{r finding 1-exp(-basketsize/number of items)}
+basketsize <- 15
+numberofitems <- ncol(mba_transactions)
+numberofitems
+
+# Calculating initial testing value for minsupport
+minsupportstarthigherthan <- 1 - exp(-basketsize/numberofitems)
+minsupportstarthigherthan 
+```
+
+# A Priori
+
+#@ Max Min Support that gives rules with lift > 1.25
+
+```{r}
+# Getting association rules with the min support and min confidence requirements
+rules1 <- apriori(mba_transactions, parameter = list(support = 0.23,
+                                                     confidence = 0.1, 
+                                                     maxlen = 15,
+                                                     target="rules"))
+
+length(rules1)
+
+# Removing association rules with lift < minimum lift
+rules1v1 <- subset(rules1, subset = lift >= 1.25)
+
+length(rules1v1)
+```
+
+```{r}
+inspect(rules1v1)
+```
+
+# Next round
+
+```{r}
+# Getting association rules with the min support and min confidence requirements
+rules2 <- apriori(mba_transactions, parameter = list(support = 0.1,
+                                                     confidence = 0.0,
+                                                     maxlen = 2,
+                                                     target="rules"))
+
+length(rules2)
+```
+
+
+## Converting to DF
+
+```{r}
+df_rules2 <- as(rules2,"data.frame")
+
+df_rules2 <- separate(data = df_rules2, col = rules, into = c("lhs", "rhs"),
+                      sep = " => ")
+
+# Remove {} from lhs and rhs
+df_rules2$lhs <- substr(df_rules2$lhs, 2,  nchar(df_rules2$lhs)-1)
+df_rules2$rhs <- substr(df_rules2$rhs, 2, nchar(df_rules2$rhs)-1)
+```
+
+```{r}
+write.xlsx(df_rules2, file = "DS5230 Intial Association Rules 2017.xlsx")
+```

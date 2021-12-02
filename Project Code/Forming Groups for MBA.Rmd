@@ -1,0 +1,2042 @@
+---
+title: "DS5230 Project MBA Code"
+author: "Ari Fleischer"
+date: "11/16/2021"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Loading in the Libraries
+
+```{r loading libraries, warning=FALSE, message=FALSE}
+# Loading the libraries
+library(tidyverse)
+```
+
+# Reading in the 2 Full CSVs
+
+## Reading in 2017 Full CSV
+
+```{r}
+full_2017_county_data <- read_csv("full_2017_county_data.csv")
+full_2017_county_data
+```
+
+# Getting Just Numeric Columns
+
+## Getting just numeric columns for 2017
+
+```{r}
+full_2017_county_data_pred <- full_2017_county_data[, c(7:42)]
+full_2017_county_data_pred
+```
+
+# Create Empty Dataframe to Store New Values
+
+```{r}
+new_2017_data <- as.data.frame(matrix(nrow=3220, ncol=36))
+colnames(new_2017_data) <- colnames(full_2017_county_data_pred)
+new_2017_data
+```
+
+# Creating Groups for the 2017 Data
+
+## Total Population
+
+### Get the row as its own df
+
+```{r}
+total_pop_2017 <- full_2017_county_data_pred[, 1]
+total_pop_2017
+```
+
+### Summary Statistics 
+
+```{r}
+mean_total_pop <- mean(full_2017_county_data_pred$TotalPop, NA.rm=TRUE)
+sd_total_pop <- sd(full_2017_county_data_pred$TotalPop)
+str_total_pop <- paste(mean_total_pop, "+-", sd_total_pop, sep = " ")
+
+median_total_pop <- median(full_2017_county_data_pred$TotalPop, NA.rm=TRUE)
+
+max_total_pop <- max(full_2017_county_data_pred$TotalPop)
+min_total_pop <- min(full_2017_county_data_pred$TotalPop)
+```
+
+```{r}
+str_total_pop
+median_total_pop
+max_total_pop
+min_total_pop
+```
+
+### Breaking Total Population Up Into Groups
+
+```{r}
+total_pop_20171 <- total_pop_2017 %>% mutate(`Population Group` = 
+                                  case_when(TotalPop < 5000 ~ "Pop 1-4,999",
+                                            TotalPop < 10000 ~ "Pop 5,000-9,999",
+                                            TotalPop < 25000 ~ "Pop 10,000-24,999",
+                                            TotalPop < 50000 ~ "Pop 25,000-49,999",
+                                            TotalPop < 100000 ~ "Pop 50,000-99,999",
+                                            TotalPop < 250000 ~ "Pop 100,000-249,999",
+                                            TotalPop >= 250000 ~ "Pop 250,000 or More"))
+
+
+total_pop_20171 %>% count(`Population Group`)
+```
+
+### Putting Total Population Groups in New Table
+
+```{r}
+new_2017_data$`TotalPop` <- total_pop_20171$`Population Group`
+```
+
+## Men
+
+### Get the row as its own df
+
+```{r}
+men_2017 <- full_2017_county_data_pred[, c(1,2)]
+men_2017
+```
+
+### Summary Statistics 
+
+```{r}
+mean_men <- mean(full_2017_county_data_pred$Men, NA.rm=TRUE)
+sd_men <- sd(full_2017_county_data_pred$Men)
+str_men <- paste(mean_men, "+-", sd_men, sep = " ")
+
+median_men <- median(full_2017_county_data_pred$Men, NA.rm=TRUE)
+
+max_men <- max(full_2017_county_data_pred$Men)
+min_men <- min(full_2017_county_data_pred$Men)
+```
+
+```{r}
+str_men
+median_men
+max_men
+min_men
+```
+
+### Breaking Men Population Up Into Groups
+
+```{r}
+men_20171 <- men_2017 %>% mutate(`Men Population Group` = 
+                                  case_when(Men < 5000 ~ "Men 1-4,999",
+                                            Men < 10000 ~ "Men 5,000-9,999",
+                                            Men < 25000 ~ "Men 10,000-24,999",
+                                            Men < 50000 ~ "Men 25,000-49,999",
+                                            Men < 100000 ~ "Men 50,000-99,999",
+                                            Men >= 100000 ~ "Men 100,000 or More"))
+
+
+men_20171 %>% count(`Men Population Group`)
+```
+
+### Putting Men Population Groups in New Table
+
+```{r}
+new_2017_data$`Men` <- men_20171$`Men Population Group`
+```
+
+## Getting What % of Total Population is Men
+
+### Getting % of Total Population That Are Men
+
+```{r}
+men_2017$`Percent Men` <- men_2017$`Men` / men_2017$`TotalPop`
+men_2017$`Percent Men`
+```
+
+### Running Summary Statistics 
+
+```{r}
+mean_percent_men <- mean(men_2017$`Percent Men`, NA.rm=TRUE)
+sd_percent_men <- sd(men_2017$`Percent Men`)
+str_percent_men <- paste(mean_percent_men, "+-", sd_percent_men, sep = " ")
+
+median_percent_men <- median(men_2017$`Percent Men`, NA.rm=TRUE)
+
+max_percent_men <- max(men_2017$`Percent Men`)
+min_percent_men <- min(men_2017$`Percent Men`)
+```
+
+```{r}
+str_percent_men
+median_percent_men
+max_percent_men
+min_percent_men
+```
+
+### Breaking Men Percentage Up Into Groups
+
+```{r}
+men_20172 <- men_2017 %>% mutate(`Men Percent Group` = 
+                                case_when(`Percent Men` < .49 ~ "Men Perc. 40-49%",
+                                          `Percent Men` < .50 ~ "Men Perc. 49-50%",
+                                          `Percent Men` >= .50 ~ "Men Perc. >= 50%"
+                                          ))
+
+
+men_20172 %>% count(`Men Percent Group`)
+```
+
+### Putting Men Percent Groups in New Table
+
+```{r}
+new_2017_data$`Percent Men` <- men_20172$`Men Percent Group`
+```
+
+## Women
+
+### Get the row as its own df
+
+```{r}
+women_2017 <- full_2017_county_data_pred[, c(1,3)]
+women_2017
+```
+
+### Summary Statistics 
+
+```{r}
+mean_women <- mean(full_2017_county_data_pred$Women, NA.rm=TRUE)
+sd_women <- sd(full_2017_county_data_pred$Women)
+str_women <- paste(mean_women, "+-", sd_women, sep = " ")
+
+median_women <- median(full_2017_county_data_pred$Women, NA.rm=TRUE)
+
+max_women <- max(full_2017_county_data_pred$Women)
+min_women <- min(full_2017_county_data_pred$Women)
+```
+
+```{r}
+str_women
+median_women
+max_women
+min_women
+```
+
+### Breaking Women Population Up Into Groups
+
+```{r}
+women_20171 <- women_2017 %>% mutate(`Women Population Group` = 
+                                  case_when(Women < 5000 ~ "Women 1-4,999",
+                                            Women < 10000 ~ "Women 5,000-9,999",
+                                            Women < 25000 ~ "Women 10,000-24,999",
+                                            Women < 50000 ~ "Women 25,000-49,999",
+                                            Women < 100000 ~ "Women 50,000-99,999",
+                                            Women >= 100000 ~ "Women 100,000 or More"))
+
+
+women_20171 %>% count(`Women Population Group`)
+```
+
+### Putting Women Groups in New Table
+
+```{r}
+new_2017_data$`Women` <- women_20171$`Women Population Group`
+```
+
+## Getting Whether More Male or Female
+
+### Getting Just Men and Womenn Rows
+
+```{r}
+gender_population <- full_2017_county_data_pred[, c(2:3)]
+gender_population
+
+gender_population$Men == gender_population$Women
+```
+
+### Getting Whether More Men or Women
+
+```{r}
+gender_population$`Gender Favored` <- "More Men"
+gender_population$`Gender Favored`[gender_population$`Men` < gender_population$`Women`] <- "More Women"
+gender_population$`Gender Favored`[gender_population$`Men` == gender_population$`Women`] <- "Gender Equal"
+
+gender_population$`Gender Favored`
+```
+
+### Adding Column With Values to New DF
+
+```{r}
+new_2017_data$`Gender Favored` <- gender_population$`Gender Favored`
+```
+
+## Hispanic
+
+### Get the row as its own df
+
+```{r}
+hispanic_2017 <- full_2017_county_data_pred[, c(4)]
+hispanic_2017
+```
+
+### Summary Statistics 
+
+```{r}
+mean_hispanic <- mean(full_2017_county_data_pred$Hispanic, NA.rm=TRUE)
+sd_hispanic <- sd(full_2017_county_data_pred$Hispanic)
+str_hispanic <- paste(mean_hispanic, "+-", sd_hispanic, sep = " ")
+
+median_hispanic <- median(full_2017_county_data_pred$Hispanic, NA.rm=TRUE)
+
+max_hispanic <- max(full_2017_county_data_pred$Hispanic)
+min_hispanic <- min(full_2017_county_data_pred$Hispanic)
+```
+
+```{r}
+str_hispanic
+median_hispanic
+max_hispanic
+min_hispanic
+```
+
+### Breaking Hispanic Percent Up Into Groups
+
+```{r}
+hispanic_20171 <- hispanic_2017 %>% mutate(`Hispanic Percent Group` = 
+                                  case_when(Hispanic < 2.5 ~ "Hispanic 0-2.5%",
+                                            Hispanic < 5 ~ "Hispanic 2.5-5%",
+                                            Hispanic < 10 ~ "Hispanic 5-10%",
+                                            Hispanic >= 10 ~ "Hispanic 10% or More"))
+
+
+hispanic_20171 %>% count(`Hispanic Percent Group`)
+```
+
+```{r}
+new_2017_data$Hispanic <- hispanic_20171$`Hispanic Percent Group`
+```
+
+## White
+
+### Get the row as its own df
+
+```{r}
+white_2017 <- full_2017_county_data_pred[, c(5)]
+white_2017
+```
+
+### Summary Statistics 
+
+```{r}
+mean_white <- mean(full_2017_county_data_pred$White, NA.rm=TRUE)
+sd_white <- sd(full_2017_county_data_pred$White)
+str_white <- paste(mean_white, "+-", sd_white, sep = " ")
+
+median_white <- median(full_2017_county_data_pred$White, NA.rm=TRUE)
+
+max_white <- max(full_2017_county_data_pred$White)
+min_white <- min(full_2017_county_data_pred$White)
+```
+
+```{r}
+str_white
+median_white
+max_white
+min_white
+```
+
+### Breaking White Percent Up Into Groups
+
+```{r}
+white_20171 <- white_2017 %>% mutate(`White Percent Group` = 
+                                  case_when(White < 25 ~ "White 0-25%",
+                                            White < 50 ~ "White 25-50%",
+                                            White < 75 ~ "White 50-75%",
+                                            White < 90 ~ "White 75-90%",
+                                            White < 95 ~ "White 90-95%",
+                                            White >= 95 ~ "White 95% or More"))
+
+
+white_20171 %>% count(`White Percent Group`)
+```
+
+```{r}
+new_2017_data$White <- white_20171$`White Percent Group`
+```
+
+## Black
+
+### Get the row as its own df
+
+```{r}
+Black_2017 <- full_2017_county_data_pred[, c(6)]
+Black_2017
+```
+
+### Summary Statistics 
+
+```{r}
+mean_Black <- mean(full_2017_county_data_pred$Black, NA.rm=TRUE)
+sd_Black <- sd(full_2017_county_data_pred$Black)
+str_Black <- paste(mean_Black, "+-", sd_Black, sep = " ")
+
+median_Black <- median(full_2017_county_data_pred$Black, NA.rm=TRUE)
+
+max_Black <- max(full_2017_county_data_pred$Black)
+min_Black <- min(full_2017_county_data_pred$Black)
+```
+
+```{r}
+str_Black
+median_Black
+max_Black
+min_Black
+```
+
+### Breaking Black Percent Up Into Groups
+
+```{r}
+Black_20171 <- Black_2017 %>% mutate(`Black Percent Group` = 
+                                  case_when(Black < 0.5 ~ "Black 0-0.5%",
+                                            Black < 1 ~ "Black 0.5-1%",
+                                            Black < 2.5 ~ "Black 1-2.5%",
+                                            Black < 10 ~ "Black 2.5-10%",
+                                            Black < 25 ~ "Black 10-25%",
+                                            Black < 50 ~ "Black 25-50%",
+                                            Black >= 50 ~ "Black 50% or More"))
+
+
+Black_20171 %>% count(`Black Percent Group`)
+```
+
+```{r}
+new_2017_data$Black <- Black_20171$`Black Percent Group`
+```
+
+## Native
+
+### Get the row as its own df
+
+```{r}
+Native_2017 <- full_2017_county_data_pred[, c(7)]
+Native_2017
+```
+
+### Summary Statistics 
+
+```{r}
+mean_Native <- mean(full_2017_county_data_pred$Native, NA.rm=TRUE)
+sd_Native <- sd(full_2017_county_data_pred$Native)
+str_Native <- paste(mean_Native, "+-", sd_Native, sep = " ")
+
+median_Native <- median(full_2017_county_data_pred$Native, NA.rm=TRUE)
+
+max_Native <- max(full_2017_county_data_pred$Native)
+min_Native <- min(full_2017_county_data_pred$Native)
+```
+
+```{r}
+str_Native
+median_Native
+max_Native
+min_Native
+```
+
+### Breaking Native Percent Up Into Groups
+
+```{r}
+Native_20171 <- Native_2017 %>% mutate(`Native Percent Group` = 
+                                  case_when(Native == 0 ~ "Native 0%",
+                                            Native < 1 ~ "Native 0-1%",
+                                            Native < 25 ~ "Native 1-25%",
+                                            Native >= 25 ~ "Native 25% or More"))
+
+
+Native_20171 %>% count(`Native Percent Group`)
+```
+
+```{r}
+new_2017_data$Native <- Native_20171$`Native Percent Group`
+```
+
+## Asian
+
+### Get the row as its own df
+
+```{r}
+Asian_2017 <- full_2017_county_data_pred[, c(8)]
+Asian_2017
+```
+
+### Summary Statistics 
+
+```{r}
+mean_Asian <- mean(full_2017_county_data_pred$Asian, NA.rm=TRUE)
+sd_Asian <- sd(full_2017_county_data_pred$Asian)
+str_Asian <- paste(mean_Asian, "+-", sd_Asian, sep = " ")
+
+median_Asian <- median(full_2017_county_data_pred$Asian, NA.rm=TRUE)
+
+max_Asian <- max(full_2017_county_data_pred$Asian)
+min_Asian <- min(full_2017_county_data_pred$Asian)
+```
+
+```{r}
+str_Asian
+median_Asian
+max_Asian
+min_Asian
+```
+
+### Breaking Asian Percent Up Into Groups
+
+```{r}
+Asian_20171 <- Asian_2017 %>% mutate(`Asian Percent Group` = 
+                                  case_when(Asian == 0 ~ "Asian 0%",
+                                            Asian < 1 ~ "Asian 0-1%",
+                                            Asian < 5 ~ "Asian 1-5%",
+                                            Asian >= 5 ~ "Asian 5% or More"))
+
+
+Asian_20171 %>% count(`Asian Percent Group`)
+```
+
+```{r}
+new_2017_data$Asian <- Asian_20171$`Asian Percent Group`
+```
+
+## Pacific
+
+### Get the row as its own df
+
+```{r}
+Pacific_2017 <- full_2017_county_data_pred[, c(9)]
+Pacific_2017
+```
+
+### Summary Statistics 
+
+```{r}
+mean_Pacific <- mean(full_2017_county_data_pred$Pacific, NA.rm=TRUE)
+sd_Pacific <- sd(full_2017_county_data_pred$Pacific)
+str_Pacific <- paste(mean_Pacific, "+-", sd_Pacific, sep = " ")
+
+median_Pacific <- median(full_2017_county_data_pred$Pacific, NA.rm=TRUE)
+
+max_Pacific <- max(full_2017_county_data_pred$Pacific)
+min_Pacific <- min(full_2017_county_data_pred$Pacific)
+```
+
+```{r}
+str_Pacific
+median_Pacific
+max_Pacific
+min_Pacific
+```
+
+### Breaking Pacific Percent Up Into Groups
+
+```{r}
+Pacific_20171 <- Pacific_2017 %>% mutate(`Pacific Percent Group` = 
+                                  case_when(Pacific == 0 ~ "Pacific 0%",
+                                            Pacific < 1 ~ "Pacific 0-1%",
+                                            Pacific >= 1 ~ "Pacific 1% or More"))
+
+
+Pacific_20171 %>% count(`Pacific Percent Group`)
+```
+
+```{r}
+new_2017_data$Pacific <- Pacific_20171$`Pacific Percent Group`
+```
+
+## Getting Max Ethnicity 
+
+### Get all the ethnicities column
+
+```{r}
+ethnicity_2017 <- full_2017_county_data_pred[, c(4:9)]
+ethnicity_2017
+```
+
+### Finding Out Which Max Is Value for Each Row
+
+```{r}
+ethnicity_2017$`Max Value` <- apply(ethnicity_2017[, 1:6], 1, max)
+```
+
+### Getting Which Ethnicty is Max Per Row
+
+```{r}
+ethnicity_2017$`Max Ethnicity` <- "Hispanic"
+ethnicity_2017$`Max Ethnicity`[ethnicity_2017[,2] == ethnicity_2017[,7]] <- "White"
+ethnicity_2017$`Max Ethnicity`[ethnicity_2017[,3] == ethnicity_2017[,7]] <- "Black"
+ethnicity_2017$`Max Ethnicity`[ethnicity_2017[,4] == ethnicity_2017[,7]] <- "Native"
+ethnicity_2017$`Max Ethnicity`[ethnicity_2017[,5] == ethnicity_2017[,7]] <- "Asian"
+ethnicity_2017$`Max Ethnicity`[ethnicity_2017[,6] == ethnicity_2017[,7]] <- "Pacific"
+
+ethnicity_2017 %>% count(`Max Ethnicity`)
+```
+
+### Adding Column With Values to New DF
+
+```{r}
+new_2017_data$`Max Ethnicity` <- ethnicity_2017$`Max Ethnicity`
+```
+
+## Voting Age Citizen
+
+### Get the row as its own df
+
+```{r}
+VotingAgeCitizen_2017 <- full_2017_county_data_pred[, c(10)]
+VotingAgeCitizen_2017
+```
+
+### Summary Statistics 
+
+```{r}
+mean_VotingAgeCitizen <- mean(full_2017_county_data_pred$VotingAgeCitizen, NA.rm=TRUE)
+sd_VotingAgeCitizen <- sd(full_2017_county_data_pred$VotingAgeCitizen)
+str_VotingAgeCitizen <- paste(mean_VotingAgeCitizen, "+-", sd_VotingAgeCitizen, sep = " ")
+
+median_VotingAgeCitizen <- median(full_2017_county_data_pred$VotingAgeCitizen, NA.rm=TRUE)
+
+max_VotingAgeCitizen <- max(full_2017_county_data_pred$VotingAgeCitizen)
+min_VotingAgeCitizen <- min(full_2017_county_data_pred$VotingAgeCitizen)
+```
+
+```{r}
+str_VotingAgeCitizen
+median_VotingAgeCitizen
+max_VotingAgeCitizen
+min_VotingAgeCitizen
+```
+
+### Breaking VotingAgeCitizen Population  Up Into Groups
+
+```{r}
+VotingAgeCitizen_20171 <- VotingAgeCitizen_2017 %>% mutate(`VotingAgeCitizen Population Group` = 
+              case_when(VotingAgeCitizen < 5000 ~ "VotingAgeCitizen 1-4,999",
+                        VotingAgeCitizen < 10000 ~ "VotingAgeCitizen 5,000-9,999",
+                        VotingAgeCitizen < 25000 ~ "VotingAgeCitizen 10,000-24,999",
+                        VotingAgeCitizen < 50000 ~ "VotingAgeCitizen 25,000-49,999",
+                        VotingAgeCitizen >= 50000 ~ "VotingAgeCitizen 50,000 or More"))
+
+
+VotingAgeCitizen_20171 %>% count(`VotingAgeCitizen Population Group`)
+```
+
+```{r}
+new_2017_data$VotingAgeCitizen <- VotingAgeCitizen_20171$`VotingAgeCitizen Population Group`
+```
+
+## Voting Age Citizen Percent 
+
+### Get the row as its own df
+
+```{r}
+VotingAgeCitizen_20171 <- full_2017_county_data_pred[, c(1, 10)]
+VotingAgeCitizen_20171$Percent <- VotingAgeCitizen_20171$VotingAgeCitizen / VotingAgeCitizen_20171$TotalPop
+VotingAgeCitizen_20171
+```
+
+### Summary Statistics 
+
+```{r}
+mean_VotingAgeCitizen1 <- mean(VotingAgeCitizen_20171$Percent, NA.rm=TRUE)
+sd_VotingAgeCitizen1 <- sd(VotingAgeCitizen_20171$Percent)
+str_VotingAgeCitizen1 <- paste(mean_VotingAgeCitizen1, "+-", sd_VotingAgeCitizen1, sep = " ")
+
+median_VotingAgeCitizen1 <- median(VotingAgeCitizen_20171$Percent, NA.rm=TRUE)
+
+max_VotingAgeCitizen1 <- max(VotingAgeCitizen_20171$Percent)
+min_VotingAgeCitizen1 <- min(VotingAgeCitizen_20171$Percent)
+```
+
+```{r}
+str_VotingAgeCitizen1
+median_VotingAgeCitizen1
+max_VotingAgeCitizen1
+min_VotingAgeCitizen1
+```
+
+### Breaking VotingAgeCitizen Percent Up Into Groups
+
+```{r}
+VotingAgeCitizen_20172 <- VotingAgeCitizen_20171 %>% mutate(`VotingAgeCitizen Percent Group` = 
+              case_when(Percent < .50 ~ "VotingAgeCitizen 0-50%",
+                        Percent < .70 ~ "VotingAgeCitizen 50-70%",
+                        Percent < .75 ~ "VotingAgeCitizen 70-75%",
+                        Percent < .80 ~ "VotingAgeCitizen 75-80%",
+                        Percent >= .80 ~ "VotingAgeCitizen 80% or More"))
+
+
+VotingAgeCitizen_20172 %>% count(`VotingAgeCitizen Percent Group`)
+```
+
+```{r}
+new_2017_data$`VotingAgeCitizen Percent` <- VotingAgeCitizen_20172$`VotingAgeCitizen Percent Group`
+```
+
+## Income
+
+### Get the row as its own df
+
+```{r}
+Income_2017 <- full_2017_county_data_pred[, c(11)]
+Income_2017
+```
+
+### Summary Statistics 
+
+```{r}
+mean_Income <- mean(full_2017_county_data_pred$Income, NA.rm=TRUE)
+sd_Income <- sd(full_2017_county_data_pred$Income)
+str_Income <- paste(mean_Income, "+-", sd_Income, sep = " ")
+
+median_Income <- median(full_2017_county_data_pred$Income, NA.rm=TRUE)
+
+max_Income <- max(full_2017_county_data_pred$Income)
+min_Income <- min(full_2017_county_data_pred$Income)
+```
+
+```{r}
+str_Income
+median_Income
+max_Income
+min_Income
+```
+
+### Breaking Income Up Into Groups
+
+```{r}
+Income_20171 <- Income_2017 %>% mutate(`Income Group` = 
+              case_when(Income < 25000 ~ "Income Below 25,000",
+                        Income < 50000 ~ "Income 25,000-49,999",
+                        Income < 75000 ~ "Income 50,000-74,999",
+                        Income >= 75000 ~ "Income 75,000 or More"))
+
+
+Income_20171 %>% count(`Income Group`)
+```
+
+```{r}
+new_2017_data$Income <- Income_20171$`Income Group`
+```
+
+
+## IncomeErr
+
+### Get the row as its own df
+
+```{r}
+IncomeErr_2017 <- full_2017_county_data_pred[, c(12)]
+IncomeErr_2017
+```
+
+### Summary Statistics 
+
+```{r}
+mean_IncomeErr <- mean(full_2017_county_data_pred$IncomeErr, NA.rm=TRUE)
+sd_IncomeErr <- sd(full_2017_county_data_pred$IncomeErr)
+str_IncomeErr <- paste(mean_IncomeErr, "+-", sd_IncomeErr, sep = " ")
+
+median_IncomeErr <- median(full_2017_county_data_pred$IncomeErr, NA.rm=TRUE)
+
+max_IncomeErr <- max(full_2017_county_data_pred$IncomeErr)
+min_IncomeErr <- min(full_2017_county_data_pred$IncomeErr)
+```
+
+```{r}
+str_IncomeErr
+median_IncomeErr
+max_IncomeErr
+min_IncomeErr
+```
+
+### Breaking IncomeErr Up Into Groups
+
+```{r}
+IncomeErr_20171 <- IncomeErr_2017 %>% mutate(`IncomeErr Group` = 
+              case_when(IncomeErr < 1250 ~ "IncomeErr Below 1,250",
+                        IncomeErr < 2500 ~ "IncomeErr 1,250-2,499",
+                        IncomeErr < 5000 ~ "IncomeErr 2,500-4,999",
+                        IncomeErr >= 5000 ~ "IncomeErr 5,000 or More"))
+
+
+IncomeErr_20171 %>% count(`IncomeErr Group`)
+```
+
+```{r}
+new_2017_data$IncomeErr <- IncomeErr_20171$`IncomeErr Group`
+```
+
+## IncomePerCap
+
+### Get the row as its own df
+
+```{r}
+IncomePerCap_2017 <- full_2017_county_data_pred[, c(13)]
+IncomePerCap_2017
+```
+
+### Summary Statistics 
+
+```{r}
+mean_IncomePerCap <- mean(full_2017_county_data_pred$IncomePerCap, NA.rm=TRUE)
+sd_IncomePerCap <- sd(full_2017_county_data_pred$IncomePerCap)
+str_IncomePerCap <- paste(mean_IncomePerCap, "+-", sd_IncomePerCap, sep = " ")
+
+median_IncomePerCap <- median(full_2017_county_data_pred$IncomePerCap, NA.rm=TRUE)
+
+max_IncomePerCap <- max(full_2017_county_data_pred$IncomePerCap)
+min_IncomePerCap <- min(full_2017_county_data_pred$IncomePerCap)
+```
+
+```{r}
+str_IncomePerCap
+median_IncomePerCap
+max_IncomePerCap
+min_IncomePerCap
+```
+
+### Breaking IncomePerCap Up Into Groups
+
+```{r}
+IncomePerCap_20171 <- IncomePerCap_2017 %>% mutate(`IncomePerCap Group` = 
+              case_when(IncomePerCap < 20000 ~ "IncomePerCap Below 20,000",
+                        IncomePerCap < 25000 ~ "IncomePerCap 20,000-24,999",
+                        IncomePerCap < 30000 ~ "IncomePerCap 25,000-29,999",
+                        IncomePerCap < 50000 ~ "IncomePerCap 30,000-49,999",
+                        IncomePerCap >= 50000 ~ "IncomePerCap 50,000 or More"))
+
+
+IncomePerCap_20171 %>% count(`IncomePerCap Group`)
+```
+
+```{r}
+new_2017_data$IncomePerCap <- IncomePerCap_20171$`IncomePerCap Group`
+```
+
+## IncomePerCapErr
+
+### Get the row as its own df
+
+```{r}
+IncomePerCapErr_2017 <- full_2017_county_data_pred[, c(14)]
+IncomePerCapErr_2017
+```
+
+### Summary Statistics 
+
+```{r}
+mean_IncomePerCapErr <- mean(full_2017_county_data_pred$IncomePerCapErr, NA.rm=TRUE)
+sd_IncomePerCapErr <- sd(full_2017_county_data_pred$IncomePerCapErr)
+str_IncomePerCapErr <- paste(mean_IncomePerCapErr, "+-", sd_IncomePerCapErr, sep = " ")
+
+median_IncomePerCapErr <- median(full_2017_county_data_pred$IncomePerCapErr, NA.rm=TRUE)
+
+max_IncomePerCapErr <- max(full_2017_county_data_pred$IncomePerCapErr)
+min_IncomePerCapErr <- min(full_2017_county_data_pred$IncomePerCapErr)
+```
+
+```{r}
+str_IncomePerCapErr
+median_IncomePerCapErr
+max_IncomePerCapErr
+min_IncomePerCapErr
+```
+
+### Breaking IncomePerCapErr Up Into Groups
+
+```{r}
+IncomePerCapErr_20171 <- IncomePerCapErr_2017 %>% mutate(`IncomePerCapErr Group` = 
+              case_when(IncomePerCapErr < 500 ~ "IncomePerCapErr Below 500",
+                        IncomePerCapErr < 1000 ~ "IncomePerCapErr 500-999",
+                        IncomePerCapErr < 1500 ~ "IncomePerCapErr 1,000-1,499",
+                        IncomePerCapErr < 2000 ~ "IncomePerCapErr 1,500-1,999",
+                        IncomePerCapErr < 5000 ~ "IncomePerCapErr 2,000-4,999",
+                        IncomePerCapErr >= 5000 ~ "IncomePerCapErr 5,000 or More"))
+
+
+IncomePerCapErr_20171 %>% count(`IncomePerCapErr Group`)
+```
+
+```{r}
+new_2017_data$IncomePerCapErr <- IncomePerCapErr_20171$`IncomePerCapErr Group`
+```
+
+## Poverty
+
+### Get the row as its own df
+
+```{r}
+Poverty_2017 <- full_2017_county_data_pred[, c(15)]
+Poverty_2017
+```
+
+### Summary Statistics 
+
+```{r}
+mean_Poverty <- mean(full_2017_county_data_pred$Poverty, NA.rm=TRUE)
+sd_Poverty <- sd(full_2017_county_data_pred$Poverty)
+str_Poverty <- paste(mean_Poverty, "+-", sd_Poverty, sep = " ")
+
+median_Poverty <- median(full_2017_county_data_pred$Poverty, NA.rm=TRUE)
+
+max_Poverty <- max(full_2017_county_data_pred$Poverty)
+min_Poverty <- min(full_2017_county_data_pred$Poverty)
+```
+
+```{r}
+str_Poverty
+median_Poverty
+max_Poverty
+min_Poverty
+```
+
+### Breaking Poverty Up Into Groups
+
+```{r}
+Poverty_20171 <- Poverty_2017 %>% mutate(`Poverty Group` = 
+              case_when(Poverty < 10 ~ "Poverty Below 10%",
+                        Poverty < 15 ~ "Poverty 10-15%",
+                        Poverty < 20 ~ "Poverty 15-20%",
+                        Poverty < 25 ~ "Poverty 20-25%",
+                        Poverty >= 25 ~ "Poverty 25% or More"))
+
+
+Poverty_20171 %>% count(`Poverty Group`)
+```
+
+```{r}
+new_2017_data$Poverty <- Poverty_20171$`Poverty Group`
+```
+
+## ChildPoverty
+
+### Get the row as its own df
+
+```{r}
+ChildPoverty_2017 <- full_2017_county_data_pred[, c(16)]
+ChildPoverty_2017
+```
+
+### Summary Statistics 
+
+```{r}
+mean_ChildPoverty <- mean(full_2017_county_data_pred$ChildPoverty, na.rm=TRUE)
+sd_ChildPoverty <- sd(full_2017_county_data_pred$ChildPoverty, na.rm = TRUE)
+str_ChildPoverty <- paste(mean_ChildPoverty, "+-", sd_ChildPoverty, sep = " ")
+
+median_ChildPoverty <- median(full_2017_county_data_pred$ChildPoverty, na.rm=TRUE)
+
+max_ChildPoverty <- max(full_2017_county_data_pred$ChildPoverty, na.rm=TRUE)
+min_ChildPoverty <- min(full_2017_county_data_pred$ChildPoverty,na.rm=TRUE)
+```
+
+```{r}
+str_ChildPoverty
+median_ChildPoverty
+max_ChildPoverty
+min_ChildPoverty
+```
+
+### Breaking ChildPoverty Up Into Groups
+
+```{r}
+ChildPoverty_20171 <- ChildPoverty_2017 %>% mutate(`ChildPoverty Group` = 
+              case_when(is.na(ChildPoverty) ~ "ChildPoverty Not Available",
+                        ChildPoverty < 10 ~ "ChildPoverty Below 10%",
+                        ChildPoverty < 20 ~ "ChildPoverty 10-20%",
+                        ChildPoverty < 25 ~ "ChildPoverty 20-25%",
+                        ChildPoverty < 50 ~ "ChildPoverty 25-50%",
+                        ChildPoverty >= 50 ~ "ChildPoverty 50% or More"))
+
+
+ChildPoverty_20171 %>% count(`ChildPoverty Group`)
+```
+
+```{r}
+new_2017_data$ChildPoverty <- ChildPoverty_20171$`ChildPoverty Group`
+```
+
+## Professional
+
+### Get the row as its own df
+
+```{r}
+Professional_2017 <- full_2017_county_data_pred[, c(17)]
+Professional_2017
+```
+
+### Summary Statistics 
+
+```{r}
+mean_Professional <- mean(full_2017_county_data_pred$Professional, na.rm=TRUE)
+sd_Professional <- sd(full_2017_county_data_pred$Professional, na.rm = TRUE)
+str_Professional <- paste(mean_Professional, "+-", sd_Professional, sep = " ")
+
+median_Professional <- median(full_2017_county_data_pred$Professional, na.rm=TRUE)
+
+max_Professional <- max(full_2017_county_data_pred$Professional, na.rm=TRUE)
+min_Professional <- min(full_2017_county_data_pred$Professional,na.rm=TRUE)
+```
+
+```{r}
+str_Professional
+median_Professional
+max_Professional
+min_Professional
+```
+
+### Breaking Professional Up Into Groups
+
+```{r}
+Professional_20171 <- Professional_2017 %>% mutate(`Professional Group` = 
+              case_when(Professional < 25 ~ "Professional Below 25%",
+                        Professional < 30 ~ "Professional 25-30%",
+                        Professional < 35 ~ "Professional 30-35%",
+                        Professional < 50 ~ "Professional 35-50%",
+                        Professional >= 50 ~ "Professional 50% or More"))
+
+
+Professional_20171 %>% count(`Professional Group`)
+```
+
+```{r}
+new_2017_data$Professional <- Professional_20171$`Professional Group`
+```
+
+## Service
+
+### Get the row as its own df
+
+```{r}
+Service_2017 <- full_2017_county_data_pred[, c(18)]
+Service_2017
+```
+
+### Summary Statistics 
+
+```{r}
+mean_Service <- mean(full_2017_county_data_pred$Service, na.rm=TRUE)
+sd_Service <- sd(full_2017_county_data_pred$Service, na.rm = TRUE)
+str_Service <- paste(mean_Service, "+-", sd_Service, sep = " ")
+
+median_Service <- median(full_2017_county_data_pred$Service, na.rm=TRUE)
+
+max_Service <- max(full_2017_county_data_pred$Service, na.rm=TRUE)
+min_Service <- min(full_2017_county_data_pred$Service,na.rm=TRUE)
+```
+
+```{r}
+str_Service
+median_Service
+max_Service
+min_Service
+```
+
+### Breaking Service Up Into Groups
+
+```{r}
+Service_20171 <- Service_2017 %>% mutate(`Service Group` = 
+              case_when(Service < 15 ~ "Service Below 15%",
+                        Service < 17.5 ~ "Service 15-17.5%",
+                        Service < 20 ~ "Service 17.5-20%",
+                        Service < 25 ~ "Service 20-25%",
+                        Service >= 25 ~ "Service 25% or More"))
+
+
+Service_20171 %>% count(`Service Group`)
+```
+
+```{r}
+new_2017_data$Service <- Service_20171$`Service Group`
+```
+
+## Office
+
+### Get the row as its own df
+
+```{r}
+Office_2017 <- full_2017_county_data_pred[, c(19)]
+Office_2017
+```
+
+### Summary Statistics 
+
+```{r}
+mean_Office <- mean(full_2017_county_data_pred$Office, na.rm=TRUE)
+sd_Office <- sd(full_2017_county_data_pred$Office, na.rm = TRUE)
+str_Office <- paste(mean_Office, "+-", sd_Office, sep = " ")
+
+median_Office <- median(full_2017_county_data_pred$Office, na.rm=TRUE)
+
+max_Office <- max(full_2017_county_data_pred$Office, na.rm=TRUE)
+min_Office <- min(full_2017_county_data_pred$Office,na.rm=TRUE)
+```
+
+```{r}
+str_Office
+median_Office
+max_Office
+min_Office
+```
+
+### Breaking Office Up Into Groups
+
+```{r}
+Office_20171 <- Office_2017 %>% mutate(`Office Group` = 
+              case_when(Office < 20 ~ "Office Below 20%",
+                        Office < 22.5 ~ "Office 20-22.5%",
+                        Office < 25 ~ "Office 22.5-25%",
+                        Office >= 25 ~ "Office 25% or More"))
+
+
+Office_20171 %>% count(`Office Group`)
+```
+
+```{r}
+new_2017_data$Office <- Office_20171$`Office Group`
+```
+
+## Construction
+
+### Get the row as its own df
+
+```{r}
+Construction_2017 <- full_2017_county_data_pred[, c(20)]
+Construction_2017
+```
+
+### Summary Statistics 
+
+```{r}
+mean_Construction <- mean(full_2017_county_data_pred$Construction, na.rm=TRUE)
+sd_Construction <- sd(full_2017_county_data_pred$Construction, na.rm = TRUE)
+str_Construction <- paste(mean_Construction, "+-", sd_Construction, sep = " ")
+
+median_Construction <- median(full_2017_county_data_pred$Construction, na.rm=TRUE)
+
+max_Construction <- max(full_2017_county_data_pred$Construction, na.rm=TRUE)
+min_Construction <- min(full_2017_county_data_pred$Construction,na.rm=TRUE)
+```
+
+```{r}
+str_Construction
+median_Construction
+max_Construction
+min_Construction
+```
+
+### Breaking Construction Up Into Groups
+
+```{r}
+Construction_20171 <- Construction_2017 %>% mutate(`Construction Group` = 
+              case_when(Construction < 10 ~ "Construction Below 10%",
+                        Construction < 12.5 ~ "Construction 10-12.5%",
+                        Construction < 15 ~ "Construction 12.5-15%",
+                        Construction < 25 ~ "Construction 15-25%",
+                        Construction >= 25 ~ "Construction 25% or More"))
+
+
+Construction_20171 %>% count(`Construction Group`)
+```
+
+```{r}
+new_2017_data$Construction <- Construction_20171$`Construction Group`
+```
+
+## Production
+
+### Get the row as its own df
+
+```{r}
+Production_2017 <- full_2017_county_data_pred[, c(21)]
+Production_2017
+```
+
+### Summary Statistics 
+
+```{r}
+mean_Production <- mean(full_2017_county_data_pred$Production, na.rm=TRUE)
+sd_Production <- sd(full_2017_county_data_pred$Production, na.rm = TRUE)
+str_Production <- paste(mean_Production, "+-", sd_Production, sep = " ")
+
+median_Production <- median(full_2017_county_data_pred$Production, na.rm=TRUE)
+
+max_Production <- max(full_2017_county_data_pred$Production, na.rm=TRUE)
+min_Production <- min(full_2017_county_data_pred$Production,na.rm=TRUE)
+```
+
+```{r}
+str_Production
+median_Production
+max_Production
+min_Production
+```
+
+### Breaking Production Up Into Groups
+
+```{r}
+Production_20171 <- Production_2017 %>% mutate(`Production Group` = 
+              case_when(Production < 10 ~ "Production Below 10%",
+                        Production < 15 ~ "Production 10-15%",
+                        Production < 20 ~ "Production 15-20%",
+                        Production < 25 ~ "Production 20-25%",
+                        Production >= 25 ~ "Production 25% or More"))
+
+
+Production_20171 %>% count(`Production Group`)
+```
+
+```{r}
+new_2017_data$Production <- Production_20171$`Production Group`
+```
+
+## Getting Biggest Employment Source
+
+### Get all the employment sources columns
+
+```{r}
+employment_2017 <- full_2017_county_data_pred[, c(17:21)]
+employment_2017
+```
+
+### Finding Out Which Max Is Value for Each Row
+
+```{r}
+employment_2017$`Max Value` <- apply(employment_2017[, 1:5], 1, max)
+```
+
+### Getting Which Employment Source is Max Per Row
+
+```{r}
+employment_2017$`Max Employment Source` <- "Professional"
+employment_2017$`Max Employment Source`[employment_2017[,2] == employment_2017[,6]] <- "Service"
+employment_2017$`Max Employment Source`[employment_2017[,3] == employment_2017[,6]] <- "Office"
+employment_2017$`Max Employment Source`[employment_2017[,4] == employment_2017[,6]] <- "Construction"
+employment_2017$`Max Employment Source`[employment_2017[,5] == employment_2017[,6]] <- "Production"
+
+employment_2017 %>% count(`Max Employment Source`)
+```
+
+### Adding Column With Values to New DF
+
+```{r}
+new_2017_data$`Max Employment Source` <- employment_2017$`Max Employment Source`
+```
+
+## Drive
+
+### Get the row as its own df
+
+```{r}
+Drive_2017 <- full_2017_county_data_pred[, c(22)]
+Drive_2017
+```
+
+### Summary Statistics 
+
+```{r}
+mean_Drive <- mean(full_2017_county_data_pred$Drive, na.rm=TRUE)
+sd_Drive <- sd(full_2017_county_data_pred$Drive, na.rm = TRUE)
+str_Drive <- paste(mean_Drive, "+-", sd_Drive, sep = " ")
+
+median_Drive <- median(full_2017_county_data_pred$Drive, na.rm=TRUE)
+
+max_Drive <- max(full_2017_county_data_pred$Drive, na.rm=TRUE)
+min_Drive <- min(full_2017_county_data_pred$Drive,na.rm=TRUE)
+```
+
+```{r}
+str_Drive
+median_Drive
+max_Drive
+min_Drive
+```
+
+### Breaking Drive Up Into Groups
+
+```{r}
+Drive_20171 <- Drive_2017 %>% mutate(`Drive Group` = 
+              case_when(Drive < 50 ~ "Drive Below 50%",
+                        Drive < 75 ~ "Drive 50-75%",
+                        Drive < 80 ~ "Drive 75-80%",
+                        Drive < 85 ~ "Drive 80-85%",
+                        Drive >= 85 ~ "Drive 85% or More"))
+
+
+Drive_20171 %>% count(`Drive Group`)
+```
+
+```{r}
+new_2017_data$Drive <- Drive_20171$`Drive Group`
+```
+
+## Carpool
+
+### Get the row as its own df
+
+```{r}
+Carpool_2017 <- full_2017_county_data_pred[, c(23)]
+Carpool_2017
+```
+
+### Summary Statistics 
+
+```{r}
+mean_Carpool <- mean(full_2017_county_data_pred$Carpool, na.rm=TRUE)
+sd_Carpool <- sd(full_2017_county_data_pred$Carpool, na.rm = TRUE)
+str_Carpool <- paste(mean_Carpool, "+-", sd_Carpool, sep = " ")
+
+median_Carpool <- median(full_2017_county_data_pred$Carpool, na.rm=TRUE)
+
+max_Carpool <- max(full_2017_county_data_pred$Carpool, na.rm=TRUE)
+min_Carpool <- min(full_2017_county_data_pred$Carpool,na.rm=TRUE)
+```
+
+```{r}
+str_Carpool
+median_Carpool
+max_Carpool
+min_Carpool
+```
+
+### Breaking Carpool Up Into Groups
+
+```{r}
+Carpool_20171 <- Carpool_2017 %>% mutate(`Carpool Group` = 
+              case_when(Carpool < 5 ~ "Carpool Below 5%",
+                        Carpool < 7.5 ~ "Carpool 5-7.5%",
+                        Carpool < 10 ~ "Carpool 7.5-10%",
+                        Carpool < 15 ~ "Carpool 10-15%",
+                        Carpool >= 15 ~ "Carpool 15% or More"))
+
+
+Carpool_20171 %>% count(`Carpool Group`)
+```
+
+```{r}
+new_2017_data$Carpool <- Carpool_20171$`Carpool Group`
+```
+
+## Transit
+
+### Get the row as its own df
+
+```{r}
+Transit_2017 <- full_2017_county_data_pred[, c(24)]
+Transit_2017
+```
+
+### Summary Statistics 
+
+```{r}
+mean_Transit <- mean(full_2017_county_data_pred$Transit, na.rm=TRUE)
+sd_Transit <- sd(full_2017_county_data_pred$Transit, na.rm = TRUE)
+str_Transit <- paste(mean_Transit, "+-", sd_Transit, sep = " ")
+
+median_Transit <- median(full_2017_county_data_pred$Transit, na.rm=TRUE)
+
+max_Transit <- max(full_2017_county_data_pred$Transit, na.rm=TRUE)
+min_Transit <- min(full_2017_county_data_pred$Transit,na.rm=TRUE)
+```
+
+```{r}
+str_Transit
+median_Transit
+max_Transit
+min_Transit
+```
+
+### Breaking Transit Up Into Groups
+
+```{r}
+Transit_20171 <- Transit_2017 %>% mutate(`Transit Group` = 
+              case_when(Transit == 0 ~ "Transit 0%",
+                        Transit < 1 ~ "Transit 0-1%",
+                        Transit < 10 ~ "Transit 1-10%",
+                        Transit >= 10 ~ "Transit 10% or More"))
+
+
+Transit_20171 %>% count(`Transit Group`)
+```
+
+```{r}
+new_2017_data$Transit <- Transit_20171$`Transit Group`
+```
+
+## Walk
+
+### Get the row as its own df
+
+```{r}
+Walk_2017 <- full_2017_county_data_pred[, c(25)]
+Walk_2017
+```
+
+### Summary Statistics 
+
+```{r}
+mean_Walk <- mean(full_2017_county_data_pred$Walk, na.rm=TRUE)
+sd_Walk <- sd(full_2017_county_data_pred$Walk, na.rm = TRUE)
+str_Walk <- paste(mean_Walk, "+-", sd_Walk, sep = " ")
+
+median_Walk <- median(full_2017_county_data_pred$Walk, na.rm=TRUE)
+
+max_Walk <- max(full_2017_county_data_pred$Walk, na.rm=TRUE)
+min_Walk <- min(full_2017_county_data_pred$Walk,na.rm=TRUE)
+```
+
+```{r}
+str_Walk
+median_Walk
+max_Walk
+min_Walk
+```
+
+### Breaking Walk Up Into Groups
+
+```{r}
+Walk_20171 <- Walk_2017 %>% mutate(`Walk Group` = 
+              case_when(Walk < 1 ~ "Walk Below 1%",
+                        Walk < 2.5 ~ "Walk 1-2.5%",
+                        Walk < 5 ~ "Walk 2.5-5%",
+                        Walk < 10 ~ "Walk 5-10%",
+                        Walk >= 10 ~ "Walk 10% or More"))
+
+
+Walk_20171 %>% count(`Walk Group`)
+```
+
+```{r}
+new_2017_data$Walk <- Walk_20171$`Walk Group`
+```
+
+## OtherTransp
+
+### Get the row as its own df
+
+```{r}
+OtherTransp_2017 <- full_2017_county_data_pred[, c(26)]
+OtherTransp_2017
+```
+
+### Summary Statistics 
+
+```{r}
+mean_OtherTransp <- mean(full_2017_county_data_pred$OtherTransp, na.rm=TRUE)
+sd_OtherTransp <- sd(full_2017_county_data_pred$OtherTransp, na.rm = TRUE)
+str_OtherTransp <- paste(mean_OtherTransp, "+-", sd_OtherTransp, sep = " ")
+
+median_OtherTransp <- median(full_2017_county_data_pred$OtherTransp, na.rm=TRUE)
+
+max_OtherTransp <- max(full_2017_county_data_pred$OtherTransp, na.rm=TRUE)
+min_OtherTransp <- min(full_2017_county_data_pred$OtherTransp,na.rm=TRUE)
+```
+
+```{r}
+str_OtherTransp
+median_OtherTransp
+max_OtherTransp
+min_OtherTransp
+```
+
+### Breaking OtherTransp Up Into Groups
+
+```{r}
+OtherTransp_20171 <- OtherTransp_2017 %>% mutate(`OtherTransp Group` = 
+              case_when(OtherTransp < 1 ~ "OtherTransp Below 1%",
+                        OtherTransp < 1.5 ~ "OtherTransp 1-1.5%",
+                        OtherTransp < 2.5 ~ "OtherTransp 1.5-2.5%",
+                        OtherTransp >= 2.5 ~ "OtherTransp 2.5% or More"))
+
+
+OtherTransp_20171 %>% count(`OtherTransp Group`)
+```
+
+```{r}
+new_2017_data$OtherTransp <- OtherTransp_20171$`OtherTransp Group`
+```
+
+## WorkAtHome
+
+### Get the row as its own df
+
+```{r}
+WorkAtHome_2017 <- full_2017_county_data_pred[, c(27)]
+WorkAtHome_2017
+```
+
+### Summary Statistics 
+
+```{r}
+mean_WorkAtHome <- mean(full_2017_county_data_pred$WorkAtHome, na.rm=TRUE)
+sd_WorkAtHome <- sd(full_2017_county_data_pred$WorkAtHome, na.rm = TRUE)
+str_WorkAtHome <- paste(mean_WorkAtHome, "+-", sd_WorkAtHome, sep = " ")
+
+median_WorkAtHome <- median(full_2017_county_data_pred$WorkAtHome, na.rm=TRUE)
+
+max_WorkAtHome <- max(full_2017_county_data_pred$WorkAtHome, na.rm=TRUE)
+min_WorkAtHome <- min(full_2017_county_data_pred$WorkAtHome,na.rm=TRUE)
+```
+
+```{r}
+str_WorkAtHome
+median_WorkAtHome
+max_WorkAtHome
+min_WorkAtHome
+```
+
+### Breaking WorkAtHome Up Into Groups
+
+```{r}
+WorkAtHome_20171 <- WorkAtHome_2017 %>% mutate(`WorkAtHome Group` = 
+              case_when(WorkAtHome < 2.5 ~ "WorkAtHome Below 2.5%",
+                        WorkAtHome < 5 ~ "WorkAtHome 2.5-5%",
+                        WorkAtHome < 10 ~ "WorkAtHome 5-10%",
+                        WorkAtHome >= 10 ~ "WorkAtHome 10% or More"))
+
+
+WorkAtHome_20171 %>% count(`WorkAtHome Group`)
+```
+
+```{r}
+new_2017_data$WorkAtHome <- WorkAtHome_20171$`WorkAtHome Group`
+```
+
+## Getting Biggest Travel Source
+
+### Get all the travel sources columns
+
+```{r}
+travel_2017 <- full_2017_county_data_pred[, c(22:27)]
+travel_2017
+```
+
+### Finding Out Which Max Is Value for Each Row
+
+```{r}
+travel_2017$`Max Value` <- apply(travel_2017[, 1:6], 1, max)
+```
+
+### Getting Which travel Source is Max Per Row
+
+```{r}
+travel_2017$`Max Travel Source` <- "Drive"
+travel_2017$`Max Travel Source`[travel_2017[,2] == travel_2017[,7]] <- "Carpool"
+travel_2017$`Max Travel Source`[travel_2017[,3] == travel_2017[,7]] <- "Transit"
+travel_2017$`Max Travel Source`[travel_2017[,4] == travel_2017[,7]] <- "Walk"
+travel_2017$`Max Travel Source`[travel_2017[,5] == travel_2017[,7]] <- "OtherTransit"
+travel_2017$`Max Travel Source`[travel_2017[,6] == travel_2017[,7]] <- "WorkAtHome"
+
+travel_2017 %>% count(`Max Travel Source`)
+```
+
+### Adding Column With Values to New DF
+
+```{r}
+new_2017_data$`Max Travel Source` <- travel_2017$`Max Travel Source`
+```
+
+## MeanCommute
+
+### Get the row as its own df
+
+```{r}
+MeanCommute_2017 <- full_2017_county_data_pred[, c(28)]
+MeanCommute_2017
+```
+
+### Summary Statistics 
+
+```{r}
+mean_MeanCommute <- mean(full_2017_county_data_pred$MeanCommute, na.rm=TRUE)
+sd_MeanCommute <- sd(full_2017_county_data_pred$MeanCommute, na.rm = TRUE)
+str_MeanCommute <- paste(mean_MeanCommute, "+-", sd_MeanCommute, sep = " ")
+
+median_MeanCommute <- median(full_2017_county_data_pred$MeanCommute, na.rm=TRUE)
+
+max_MeanCommute <- max(full_2017_county_data_pred$MeanCommute, na.rm=TRUE)
+min_MeanCommute <- min(full_2017_county_data_pred$MeanCommute,na.rm=TRUE)
+```
+
+```{r}
+str_MeanCommute
+median_MeanCommute
+max_MeanCommute
+min_MeanCommute
+```
+
+### Breaking MeanCommute Up Into Groups
+
+```{r}
+MeanCommute_20171 <- MeanCommute_2017 %>% mutate(`MeanCommute Group` = 
+              case_when(MeanCommute < 15 ~ "MeanCommute Below 15 Minutes",
+                        MeanCommute < 20 ~ "MeanCommute 15-20 Minutes",
+                        MeanCommute < 25 ~ "MeanCommute 20-25 Minutes",
+                        MeanCommute < 30 ~ "MeanCommute 25-30 Minutes",
+                        MeanCommute >= 30 ~ "MeanCommute 30 Minutes or More"))
+
+
+MeanCommute_20171 %>% count(`MeanCommute Group`)
+```
+
+```{r}
+new_2017_data$MeanCommute <- MeanCommute_20171$`MeanCommute Group`
+```
+
+## Employed
+
+### Get the row as its own df
+
+```{r}
+Employed_2017 <- full_2017_county_data_pred[, c(29)]
+Employed_2017
+```
+
+### Summary Statistics 
+
+```{r}
+mean_Employed <- mean(full_2017_county_data_pred$Employed, na.rm=TRUE)
+sd_Employed <- sd(full_2017_county_data_pred$Employed, na.rm = TRUE)
+str_Employed <- paste(mean_Employed, "+-", sd_Employed, sep = " ")
+
+median_Employed <- median(full_2017_county_data_pred$Employed, na.rm=TRUE)
+
+max_Employed <- max(full_2017_county_data_pred$Employed, na.rm=TRUE)
+min_Employed <- min(full_2017_county_data_pred$Employed,na.rm=TRUE)
+```
+
+```{r}
+str_Employed
+median_Employed
+max_Employed
+min_Employed
+```
+
+### Breaking Employed Up Into Groups
+
+```{r}
+Employed_20171 <- Employed_2017 %>% mutate(`Employed Group` = 
+              case_when(Employed < 2500 ~ "Employed Below 2,500 People",
+                        Employed < 5000 ~ "Employed 2,500-4,999 People",
+                        Employed < 10000 ~ "Employed 5,000-9,999 People",
+                        Employed < 25000 ~ "Employed 10,000-25,000 People",
+                        Employed < 50000 ~ "Employed 25,000-49,999 People",
+                        Employed >= 50000 ~ "Employed 50,000 People or More"))
+
+
+Employed_20171 %>% count(`Employed Group`)
+```
+
+```{r}
+new_2017_data$Employed <- Employed_20171$`Employed Group`
+```
+
+## Employed Percentage
+
+### Get the row as its own df
+
+```{r}
+EmployedPercent_2017 <- full_2017_county_data_pred[, c(1,29)]
+EmployedPercent_2017$`EmployedPercent` <- EmployedPercent_2017$`Employed` / EmployedPercent_2017$`TotalPop`
+```
+
+### Summary Statistics 
+
+```{r}
+mean_EmployedPercent <- mean(EmployedPercent_2017$EmployedPercent, na.rm=TRUE)
+sd_EmployedPercent <- sd(EmployedPercent_2017$EmployedPercent, na.rm = TRUE)
+str_EmployedPercent <- paste(mean_EmployedPercent, "+-", sd_EmployedPercent, sep = " ")
+
+median_EmployedPercent <- median(EmployedPercent_2017$EmployedPercent, na.rm=TRUE)
+
+max_EmployedPercent <- max(EmployedPercent_2017$EmployedPercent, na.rm=TRUE)
+min_EmployedPercent <- min(EmployedPercent_2017$EmployedPercent,na.rm=TRUE)
+```
+
+```{r}
+str_EmployedPercent
+median_EmployedPercent
+max_EmployedPercent
+min_EmployedPercent
+```
+
+### Breaking EmployedPercent Up Into Groups
+
+```{r}
+EmployedPercent_20171 <- EmployedPercent_2017 %>% mutate(`EmployedPercent Group` = 
+              case_when(EmployedPercent < .25 ~ "EmployedPercent Below 25%",
+                        EmployedPercent < .40 ~ "EmployedPercent 25-40%",
+                        EmployedPercent < .50 ~ "EmployedPercent 40-50%",
+                        EmployedPercent >= .50 ~ "EmployedPercent 50% or More"))
+
+
+EmployedPercent_20171 %>% count(`EmployedPercent Group`)
+```
+
+```{r}
+new_2017_data$EmployedPercent <- EmployedPercent_20171$`EmployedPercent Group`
+```
+
+## PrivateWork
+
+### Get the row as its own df
+
+```{r}
+PrivateWork_2017 <- full_2017_county_data_pred[, c(30)]
+PrivateWork_2017
+```
+
+### Summary Statistics 
+
+```{r}
+mean_PrivateWork <- mean(full_2017_county_data_pred$PrivateWork, na.rm=TRUE)
+sd_PrivateWork <- sd(full_2017_county_data_pred$PrivateWork, na.rm = TRUE)
+str_PrivateWork <- paste(mean_PrivateWork, "+-", sd_PrivateWork, sep = " ")
+
+median_PrivateWork <- median(full_2017_county_data_pred$PrivateWork, na.rm=TRUE)
+
+max_PrivateWork <- max(full_2017_county_data_pred$PrivateWork, na.rm=TRUE)
+min_PrivateWork <- min(full_2017_county_data_pred$PrivateWork,na.rm=TRUE)
+```
+
+```{r}
+str_PrivateWork
+median_PrivateWork
+max_PrivateWork
+min_PrivateWork
+```
+
+### Breaking PrivateWork Up Into Groups
+
+```{r}
+PrivateWork_20171 <- PrivateWork_2017 %>% mutate(`PrivateWork Group` = 
+              case_when(PrivateWork < 50 ~ "PrivateWork Below 50%",
+                        PrivateWork < 75 ~ "PrivateWork 50-75%",
+                        PrivateWork >= 75 ~ "PrivateWork 75% or More"))
+
+
+PrivateWork_20171 %>% count(`PrivateWork Group`)
+```
+
+```{r}
+new_2017_data$PrivateWork <- PrivateWork_20171$`PrivateWork Group`
+```
+
+## PublicWork
+
+### Get the row as its own df
+
+```{r}
+PublicWork_2017 <- full_2017_county_data_pred[, c(31)]
+PublicWork_2017
+```
+
+### Summary Statistics 
+
+```{r}
+mean_PublicWork <- mean(full_2017_county_data_pred$PublicWork, na.rm=TRUE)
+sd_PublicWork <- sd(full_2017_county_data_pred$PublicWork, na.rm = TRUE)
+str_PublicWork <- paste(mean_PublicWork, "+-", sd_PublicWork, sep = " ")
+
+median_PublicWork <- median(full_2017_county_data_pred$PublicWork, na.rm=TRUE)
+
+max_PublicWork <- max(full_2017_county_data_pred$PublicWork, na.rm=TRUE)
+min_PublicWork <- min(full_2017_county_data_pred$PublicWork,na.rm=TRUE)
+```
+
+```{r}
+str_PublicWork
+median_PublicWork
+max_PublicWork
+min_PublicWork
+```
+
+### Breaking PublicWork Up Into Groups
+
+```{r}
+PublicWork_20171 <- PublicWork_2017 %>% mutate(`PublicWork Group` = 
+              case_when(PublicWork < 10 ~ "PublicWork Below 10%",
+                        PublicWork < 15 ~ "PublicWork 10-15%",
+                        PublicWork < 25 ~ "PublicWork 15-25%",
+                        PublicWork >= 25 ~ "PublicWork 25% or More"))
+
+
+PublicWork_20171 %>% count(`PublicWork Group`)
+```
+
+```{r}
+new_2017_data$PublicWork <- PublicWork_20171$`PublicWork Group`
+```
+
+## SelfEmployed
+
+### Get the row as its own df
+
+```{r}
+SelfEmployed_2017 <- full_2017_county_data_pred[, c(32)]
+SelfEmployed_2017
+```
+
+### Summary Statistics 
+
+```{r}
+mean_SelfEmployed <- mean(full_2017_county_data_pred$SelfEmployed, na.rm=TRUE)
+sd_SelfEmployed <- sd(full_2017_county_data_pred$SelfEmployed, na.rm = TRUE)
+str_SelfEmployed <- paste(mean_SelfEmployed, "+-", sd_SelfEmployed, sep = " ")
+
+median_SelfEmployed <- median(full_2017_county_data_pred$SelfEmployed, na.rm=TRUE)
+
+max_SelfEmployed <- max(full_2017_county_data_pred$SelfEmployed, na.rm=TRUE)
+min_SelfEmployed <- min(full_2017_county_data_pred$SelfEmployed,na.rm=TRUE)
+```
+
+```{r}
+str_SelfEmployed
+median_SelfEmployed
+max_SelfEmployed
+min_SelfEmployed
+```
+
+### Breaking SelfEmployed Up Into Groups
+
+```{r}
+SelfEmployed_20171 <- SelfEmployed_2017 %>% mutate(`SelfEmployed Group` = 
+              case_when(SelfEmployed < 5 ~ "SelfEmployed Below 5%",
+                        SelfEmployed < 7.5 ~ "SelfEmployed 5-7.5%",
+                        SelfEmployed < 10 ~ "SelfEmployed 7.5-10%",
+                        SelfEmployed >= 10 ~ "SelfEmployed 10% or More"))
+
+
+SelfEmployed_20171 %>% count(`SelfEmployed Group`)
+```
+
+```{r}
+new_2017_data$SelfEmployed <- SelfEmployed_20171$`SelfEmployed Group`
+```
+
+## FamilyWork
+
+### Get the row as its own df
+
+```{r}
+FamilyWork_2017 <- full_2017_county_data_pred[, c(33)]
+FamilyWork_2017
+```
+
+### Summary Statistics 
+
+```{r}
+mean_FamilyWork <- mean(full_2017_county_data_pred$FamilyWork, na.rm=TRUE)
+sd_FamilyWork <- sd(full_2017_county_data_pred$FamilyWork, na.rm = TRUE)
+str_FamilyWork <- paste(mean_FamilyWork, "+-", sd_FamilyWork, sep = " ")
+
+median_FamilyWork <- median(full_2017_county_data_pred$FamilyWork, na.rm=TRUE)
+
+max_FamilyWork <- max(full_2017_county_data_pred$FamilyWork, na.rm=TRUE)
+min_FamilyWork <- min(full_2017_county_data_pred$FamilyWork,na.rm=TRUE)
+```
+
+```{r}
+str_FamilyWork
+median_FamilyWork
+max_FamilyWork
+min_FamilyWork
+```
+
+### Breaking FamilyWork Up Into Groups
+
+```{r}
+FamilyWork_20171 <- FamilyWork_2017 %>% mutate(`FamilyWork Group` = 
+              case_when(FamilyWork == 0 ~ "FamilyWork 0%",
+                        FamilyWork < 1 ~ "FamilyWork 0-1%",
+                        FamilyWork >= 1 ~ "FamilyWork 1% or More"))
+
+
+FamilyWork_20171 %>% count(`FamilyWork Group`)
+```
+
+```{r}
+new_2017_data$FamilyWork <- FamilyWork_20171$`FamilyWork Group`
+```
+
+## Biggest Work Source
+
+### Get the row as its own df
+
+```{r}
+BiggestWorkSource_2017 <- full_2017_county_data_pred[, c(30:33)]
+BiggestWorkSource_2017
+```
+
+### Finding Out Which Max Is Value for Each Row
+
+```{r}
+BiggestWorkSource_2017$`Max Value` <- apply(BiggestWorkSource_2017[, 1:4], 1, max)
+```
+
+### Getting Which travel Source is Max Per Row
+
+```{r}
+BiggestWorkSource_2017$`Max Work Source` <- "PrivateWork"
+BiggestWorkSource_2017$`Max Work Source`[BiggestWorkSource_2017[,2] == BiggestWorkSource_2017[,5]] <- "PublicWork"
+BiggestWorkSource_2017$`Max Work Source`[BiggestWorkSource_2017[,3] == BiggestWorkSource_2017[,5]] <- "SelfEmployed"
+BiggestWorkSource_2017$`Max Work Source`[BiggestWorkSource_2017[,4] == BiggestWorkSource_2017[,5]] <- "FamilyWork"
+
+BiggestWorkSource_2017 %>% count(`Max Work Source`)
+```
+
+### Adding Column With Values to New DF
+
+```{r}
+new_2017_data$`Max Work Source` <- BiggestWorkSource_2017$`Max Work Source`
+```
+
+## Unemployment
+
+### Get the row as its own df
+
+```{r}
+Unemployment_2017 <- full_2017_county_data_pred[, c(34)]
+Unemployment_2017
+```
+
+### Summary Statistics 
+
+```{r}
+mean_Unemployment <- mean(full_2017_county_data_pred$Unemployment, na.rm=TRUE)
+sd_Unemployment <- sd(full_2017_county_data_pred$Unemployment, na.rm = TRUE)
+str_Unemployment <- paste(mean_Unemployment, "+-", sd_Unemployment, sep = " ")
+
+median_Unemployment <- median(full_2017_county_data_pred$Unemployment, na.rm=TRUE)
+
+max_Unemployment <- max(full_2017_county_data_pred$Unemployment, na.rm=TRUE)
+min_Unemployment <- min(full_2017_county_data_pred$Unemployment,na.rm=TRUE)
+```
+
+```{r}
+str_Unemployment
+median_Unemployment
+max_Unemployment
+min_Unemployment
+```
+
+### Breaking Unemployment Up Into Groups
+
+```{r}
+Unemployment_20171 <- Unemployment_2017 %>% mutate(`Unemployment Group` = 
+              case_when(Unemployment < 2.5 ~ "Unemployment Below 2.5%",
+                        Unemployment < 5 ~ "Unemployment 2.5-5%",
+                        Unemployment < 7.5 ~ "Unemployment 5-7.5%",
+                        Unemployment < 10 ~ "Unemployment 7.5-10%",
+                        Unemployment >= 10 ~ "Unemployment 10% or More"))
+
+
+Unemployment_20171 %>% count(`Unemployment Group`)
+```
+
+```{r}
+new_2017_data$Unemployment <- Unemployment_20171$`Unemployment Group`
+```
+
+## Lat
+
+### Get the row as its own df
+
+```{r}
+Lat_2017 <- full_2017_county_data_pred[, c(35)]
+Lat_2017
+```
+
+### Summary Statistics 
+
+```{r}
+mean_Lat <- mean(full_2017_county_data_pred$Lat, na.rm=TRUE)
+sd_Lat <- sd(full_2017_county_data_pred$Lat, na.rm = TRUE)
+str_Lat <- paste(mean_Lat, "+-", sd_Lat, sep = " ")
+
+median_Lat <- median(full_2017_county_data_pred$Lat, na.rm=TRUE)
+
+max_Lat <- max(full_2017_county_data_pred$Lat, na.rm=TRUE)
+min_Lat <- min(full_2017_county_data_pred$Lat,na.rm=TRUE)
+```
+
+```{r}
+str_Lat
+median_Lat
+max_Lat
+min_Lat
+```
+
+### Breaking Lat Up Into Groups
+
+```{r}
+Lat_20171 <- Lat_2017 %>% mutate(`Lat Group` = 
+              case_when(Lat < 33 ~ "Lat Below 33",
+                        Lat < 38 ~ "Lat 33-38",
+                        Lat < 42 ~ "Lat 38-42",
+                        Lat >= 42 ~ "Lat 42-70"))
+
+
+Lat_20171 %>% count(`Lat Group`)
+```
+
+```{r}
+new_2017_data$Lat <- Lat_20171$`Lat Group`
+```
+
+## Long
+
+### Get the row as its own df
+
+```{r}
+Long_2017 <- full_2017_county_data_pred[, c(36)]
+Long_2017
+```
+
+### Summary Statistics 
+
+```{r}
+mean_Long <- mean(full_2017_county_data_pred$Long, na.rm=TRUE)
+sd_Long <- sd(full_2017_county_data_pred$Long, na.rm = TRUE)
+str_Long <- paste(mean_Long, "+-", sd_Long, sep = " ")
+
+median_Long <- median(full_2017_county_data_pred$Long, na.rm=TRUE)
+
+max_Long <- max(full_2017_county_data_pred$Long, na.rm=TRUE)
+min_Long <- min(full_2017_county_data_pred$Long,na.rm=TRUE)
+```
+
+```{r}
+str_Long
+median_Long
+max_Long
+min_Long
+```
+
+### Breaking Long Up Into Groups
+
+```{r}
+Long_20171 <- Long_2017 %>% mutate(`Long Group` = 
+              case_when(Long < -110 ~ "Long Below -110",
+                        Long < -100 ~ "Long -110 - -100",
+                        Long < -90 ~ "Long -100 - -90",
+                        Long < -80 ~ "Long -90 - -80",
+                        Long >= -80 ~ "Long -80 - -60"))
+
+
+Long_20171 %>% count(`Long Group`)
+```
+
+```{r}
+new_2017_data$Long <- Long_20171$`Long Group`
+```
+
+```{r}
+write_csv(new_2017_data, "new_2017_data.csv")
+```
