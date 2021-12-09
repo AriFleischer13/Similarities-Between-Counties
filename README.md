@@ -10,6 +10,6 @@ The file Forming Groups for MBA.rmd is the file used to turn all of the numeric 
 
 The file MBA Code.rmd is the code used to run MBA on the newly created dataset created in Forming Groups for MBA.rmd. However, only 15 of the 44 columns of the new_2017_data were used. The 15 columns were TotalPop, IncomePerCap, IncomePerCapErr, Poverty, MeanCommute, Lat, Long, Gender Favored, Max Ethnicity, VotingAgeCitizen Percent, Max Employment Source, Max Travel Source, EmployedPercent, Max Work Source, and Unemployment.
 
-Zack's code and what is has
+The file UML_Project.ipynb contains code loading in and fortmatting the data, as well as normalizing it to the unit hyper-cube. Then it is cleaned (a couple of NaN values removed) and used in PCA and t-SNE algorithms in order to help analyze the data in low dimensions. This is where many of the plots are created as well. 
 
 Ethan's code and what it has
