@@ -12,4 +12,4 @@ The file MBA Code.rmd is the code used to run MBA on the newly created dataset c
 
 The file UML_Project.ipynb contains code loading in and fortmatting the data, as well as normalizing it to the unit hyper-cube. Then it is cleaned (a couple of NaN values removed) and used in PCA and t-SNE algorithms in order to help analyze the data in low dimensions. This is where many of the plots are created as well. 
 
-Ethan's code and what it has
+The file Ethan_code.ipynb contains code for loading in the full datasets, normalizing the datasets. The file also includes the code for Ridge and Lasso regression that was tried to find the most important features as well as clustering techniques used for both the full dataset and the dataset without Alaska, Hawaii, and Puerto Rico as well as without location.
