@@ -1,5 +1,7 @@
 Similarities-Between-Counties
 
+This project was for DS5230 Unsupervised Machine Learning at Northeastern University Fall 2021. The aim of this project was to use unsupervised machine learning algorithms to determine which demographic, geographic, and economic features of a county are most important in determing whether two US countieis will be similar or not. 
+
 The Dataset folder contains all the datasets and the Project Code file contains all of the code used for this project. 
 
 acs2017_county_data.csv and acs2015_county_data.csv are the DP03 and DP05 tables of the American Community Survey for that year. uscounties.csv is the latitude and longitude of each US county or county equivalent. PuertoRicoLocationData.csv is the latitude and longitude values of the 78 municipalities of Puerto Rico. us census bureau regions and divisions.csv is the region and division that each state plus D.C. is in according to the US Census Bureau with Puerto Rico added. 
